@@ -3,9 +3,7 @@
 
 // Artblocks injects the tokenData variable into your sketch like so
 //let tokenData = {"hash":"0xa55b214f361cc0f33644b86ff19d28e1c2d298b13157c621fb0cb05edb7f2a1f","tokenId":"13000233"};
-//let tokenData = {"hash":"0xaeea04e79dc9ed6d3fd2377de7d17f31fa2d12d85e8e4233e8c34aab4b48f0f6","tokenId":"13000234"}
-//let tokenData = {"hash":"0x8c34aab4b31fa8e4aeea04e79dc9ed6d3fd2377de7d17f2d12d85e233e48f0f6","tokenId":"13000235"}
-let tokenData = genTokenData(13);
+//let tokenData = genTokenData(13);
 let features = [];
 
 function genTokenData(projectNum)
@@ -57,16 +55,16 @@ let pNames =
 }
 
 // Produces 32 values between 0 and 255 inclusive
-function extractParameters(tokenHash) 
+function extractParameters(hash) 
 {
-  let values = [];
-  let substr;
+  let _values = [];
+  let _substr;
   for (let j = 0; j < 32; j++) 
   {
-    substr = tokenHash.substr(2 + (j * 2), 2);
-    values.push(parseInt(substr, 16));
+    _substr = hash.substr(2 + (j * 2), 2);
+    _values.push(parseInt(_substr, 16));
   }
-  return values;
+  return _values;
 }
 
 let _shapeData = [
@@ -371,11 +369,11 @@ let saveNum = 0;
 // animation
 let _isAnimating = false;
 
-let apVal = 0.1;
-let apChg = 0.0005;
-let apMax = 0.99;
-let apMin = 0.01;
-let apIdx = -1;
+let _animParamVal = 0.1;
+let _animParamChg = 0.0005;
+let _animParamMax = 0.99;
+let _animParamMin = 0.01;
+let _animParamIdx = -1;
 
 // debug
 //let fnt;
@@ -400,43 +398,43 @@ function setFeatures()
   features = _feats;
 }
 
-function getColorName(hue)
+function getColorName(_hue)
 {
-  hue = hue % 360;
+  _hue = _hue % 360;
   let _colorName = "Unknown";
-  if (hue > 315)
+  if (_hue > 315)
   {
     _colorName =  "Red";
   }
-  else if (hue > 300)
+  else if (_hue > 300)
   {
     _colorName =  "Pink";
   }
-  else if (hue > 255)
+  else if (_hue > 255)
   {
     _colorName =  "Purple";
   }
-  else if (hue > 300)
+  else if (_hue > 300)
   {
     _colorName =  "Blue";
   }
-  else if (hue > 185)
+  else if (_hue > 185)
   {
     _colorName =  "Aqua";
   }
-  else if (hue > 93)
+  else if (_hue > 93)
   {
     _colorName =  "Green";
   }
-  else if (hue > 63)
+  else if (_hue > 63)
   {
     _colorName =  "Chartreuse";
   }
-  else if (hue > 42)
+  else if (_hue > 42)
   {
     _colorName =  "Yellow";
   }
-  else if (hue > 11)
+  else if (_hue > 11)
   {
     _colorName =  "Orange";
   }
@@ -449,10 +447,10 @@ function getColorName(hue)
 
 // --- P5 ---
 
-_p5c.preload = () =>
-{
-  //fnt = _p5c.loadFont( 'helveticaneue.otf' );
-}
+// _p5c.preload = () =>
+// {
+//   //fnt = _p5c.loadFont( 'helveticaneue.otf' );
+// }
 
 _p5c.setup = () =>
 {
@@ -467,12 +465,13 @@ _p5c.setup = () =>
   const tp = tilingTypes[ 0 ];
   _tiling = new IsohedralTiling( tp );
 
-  _p5c.textureWrap( _p5c.REPEAT );
-  _p5c.textureMode( _p5c.NORMAL );
+  newSpiral(false);
 
   _shader1 = _p5c.createShader(vs_code, fs_code);
+  _p5c.shader( _shader1 );
 
-  newSpiral(false);
+  _p5c.textureWrap( _p5c.REPEAT );
+  _p5c.textureMode( _p5c.NORMAL );
 
   _p5c.noLoop();
 }
@@ -483,17 +482,17 @@ _p5c.draw = () =>
   _p5c.push();
   _p5c.translate( -_p5c.width/2, -_p5c.height/2 );
 
-  let _animatingParams = (apIdx > -1) ? true : false;
+  let _animatingParams = (_animParamIdx > -1) ? true : false;
   
   if( _animatingParams ) 
   {
-    apVal += apChg;
-    if ((apVal >= apMax && apChg > 0) || (apVal <= apMin && apChg < 0))
+    _animParamVal += _animParamChg;
+    if ((_animParamVal >= _animParamMax && _animParamChg > 0) || (_animParamVal <= _animParamMin && _animParamChg < 0))
     {
-      apChg = -apChg;
+      _animParamChg = -_animParamChg;
     }
     aps = _tiling.getParameters();
-    aps[apIdx] = apVal;
+    aps[_animParamIdx] = _animParamVal;
     _tiling.setParameters(aps);
     defineShape();
   }
@@ -551,7 +550,7 @@ _p5c.keyReleased = () =>
   }
   else if (_p5c.key === 'u' || _p5c.key === 'U') 
   {
-    if (apIdx > -1) apIdx = -1;
+    if (_animParamIdx > -1) _animParamIdx = -1;
     _toggleSliders();
   }
   else if (_p5c.key === 's' || _p5c.key === 'S') 
@@ -650,7 +649,7 @@ class TileCol extends Coloring {
 function chooseColors(doCycle)
 {
   let _startSat, _startLig, _blackAndWhite = false;
-  let _newColors = [];
+
   if (_special && !doCycle)
   {
     _colorScheme = _schemes.Family;
@@ -947,6 +946,7 @@ function drawTranslationalUnit()
   if( og == null ) 
   {
     og = _p5c.createGraphics( OG_SIZE, OG_SIZE ); 
+    //console.log("og created");
   }
 
   og.background( _cols[0] );
@@ -1044,16 +1044,21 @@ function calcTransform()
 
 function drawSpiral()
 {
-  console.log("W,H = " + _WIDTH + "," + _HEIGHT);
-  
+  //console.log("W/2,H/2 = " + _WIDTH/2 + "," + _HEIGHT/2);
+  //console.log("og_M = " + og_M);
+
+  // og = _p5c.createGraphics( OG_SIZE, OG_SIZE ); 
+  // og.background(160);
+
+
   _p5c.noStroke();
-  _p5c.shader( _shader1 );
+  //_p5c.shader( _shader1 );
 
   _shader1.setUniform( "res", [_WIDTH/2, _HEIGHT/2] );
-  console.log("og w,h = " + og.width + "," + og.height);
+  //console.log("og w,h = " + og.width + "," + og.height);
   _shader1.setUniform( "tex", og );
   _shader1.setUniform( "mob", _doubleSpiral );
-  _shader1.setUniform( "fullscreen", _fullscreen );
+  _shader1.setUniform( "fullscreen", false ); // _fullscreen
 
   const M = [og_M[0], og_M[2], 0.0, og_M[1], og_M[3], 0.0];
   const T = mul( M, _tiling_iT );
@@ -1065,7 +1070,7 @@ function drawSpiral()
   // will feed WebGL a rectangle from (0,0) to (1,1) with matching
   // texture coordinates, and the shader will see that in the context
   // of a viewport covering (-1,-1) to (1,1). 
-  _p5c.rect(0, 1, 2, 3);
+  _p5c.rect(0, 0, 1, 1);
 }
 
 function animateParam(paramIdx, minVal, maxVal, speed = 1)
@@ -1076,19 +1081,19 @@ function animateParam(paramIdx, minVal, maxVal, speed = 1)
   let numParams = _tiling.numParameters();
   if (paramIdx < 0 || paramIdx >= numParams || minVal >= maxVal || minVal < 0 || maxVal <= 0) return;
 
-  if (paramIdx == apIdx)
+  if (paramIdx == _animParamIdx)
   {
     // stop current param animation
-    apIdx = -1;
+    _animParamIdx = -1;
   }
   else
   {
     let startParams = _tiling.getParameters();
-    apVal = startParams[paramIdx];
-    apIdx = paramIdx;
-    apMin = Math.max(minVal, 0.005);
-    apMax = Math.min(maxVal, 1.99);
-    apChg = 0.0005 * speed;
+    _animParamVal = startParams[paramIdx];
+    _animParamIdx = paramIdx;
+    _animParamMin = Math.max(minVal, 0.005);
+    _animParamMax = Math.min(maxVal, 1.99);
+    _animParamChg = 0.0005 * speed;
     _p5c.loop();
   }
 }
@@ -1146,6 +1151,17 @@ function sliderParamChanged()
 
 // --- SHADER CODE ---
 let vs_code = 
+'precision highp float;' +
+'attribute vec3 aPosition;' +
+'varying vec2 uv;' +
+'void main() {' +
+	'  uv = aPosition.xy;' +
+	'  vec4 pos = vec4(aPosition, 1.0);' +
+	'  pos = vec4( 2.0*pos.x-1.0, 2.0*pos.y-1.0, pos.z, 1.0 );' +
+	'  pos.y = -pos.y;' +
+	'  gl_Position = pos;' +
+'}';
+let vs_code2 = 
 'precision highp float;' +
 'attribute vec3 aPosition;' +
 'uniform bool fullscreen;' +
