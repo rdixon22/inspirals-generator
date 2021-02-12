@@ -6,6 +6,7 @@
 //let tokenData = {"hash":"0xaeea04e79dc9ed6d3fd2377de7d17f31fa2d12d85e8e4233e8c34aab4b48f0f6","tokenId":"13000234"}
 //let tokenData = {"hash":"0x8c34aab4b31fa8e4aeea04e79dc9ed6d3fd2377de7d17f2d12d85e233e48f0f6","tokenId":"13000235"}
 let tokenData = genTokenData(13);
+let features = [];
 
 function genTokenData(projectNum)
 {
@@ -380,25 +381,23 @@ let apIdx = -1;
 //let fnt;
 //let _debugLabel;
 
+// --- METADATA ---
 /**
  * Call this after all parameters have been set (post-setup)
- * @param {*} tokenData 
  */
-function getMetadata(tokenData)
+function setFeatures()
 {
-  let _metadata = new TokenMetadata(tokenData, "Inspirals by Radix", "https://artblocks.io/", 1000);
-  
-  let baseColorName = (_colorScheme == _schemes.BW ? "Black" : getColorName(_startHue + _changeHue));
-  
-  _metadata.addTrait("base_color", baseColorName);
-  _metadata.addTrait("color_scheme", _schemeNames[_colorScheme - 3]);
-  _metadata.addTrait("symmetry_type", _currentPreset.sh.t, 30, "number");
-  _metadata.addTrait("pattern", _presetIdx, _paramData.length, "number");
-  _metadata.addTrait("line_mode", Object.keys(_lineModes)[_lineStyle]);
-  _metadata.addTrait("distortions", _tiling.numParameters(), 6);
-  _metadata.addTrait("hash", tokenData.hash);
+  let _feats = [];
 
-  return _metadata.getJson();
+  let _baseColorName = (_colorScheme == _schemes.BW ? "Black" : getColorName(_startHue + _changeHue));
+  _feats.push("Base Color: " + _baseColorName);
+  _feats.push("Color Scheme: " + _schemeNames[_colorScheme - 3]);
+  _feats.push("Symmetry Type: " + _currentPreset.sh.t);
+  _feats.push("Pattern: " + _presetIdx);
+  _feats.push("Line Mode: " + Object.keys(_lineModes)[_lineStyle]);
+  _feats.push("Distortions: " + _tiling.numParameters());
+
+  features = _feats;
 }
 
 function getColorName(hue)
@@ -799,7 +798,8 @@ function newSpiral()
   chooseColors(false);
   setTilingType(_currentPreset);
   
-  console.log(getMetadata(tokenData));
+  setFeatures();
+  console.log(JSON.stringify(features));
 }
 
 // Sets sn, _presetIdx, _special, adjs, spA, spB
@@ -1044,10 +1044,13 @@ function calcTransform()
 
 function drawSpiral()
 {
+  console.log("W,H = " + _WIDTH + "," + _HEIGHT);
+  
   _p5c.noStroke();
   _p5c.shader( _shader1 );
 
   _shader1.setUniform( "res", [_WIDTH/2, _HEIGHT/2] );
+  console.log("og w,h = " + og.width + "," + og.height);
   _shader1.setUniform( "tex", og );
   _shader1.setUniform( "mob", _doubleSpiral );
   _shader1.setUniform( "fullscreen", _fullscreen );
@@ -2704,73 +2707,6 @@ class IsohedralTiling
 		return col;
 	}
 };
-
-
-class TokenMetadata
-{
-  constructor(tokenData, projectName, uriPrefix, maxSupply = null, desc = null, bgColor = null)
-  {
-    this.tokenHash = tokenData.hash;
-    this.tokenId = tokenData.tokenId;
-
-    this.traits = [];
-
-    this.tokenSerial = this.tokenId % 1000000;
-    this.addTrait("serial_num", this.tokenSerial, maxSupply, "number");
-
-    this.tokenSeries = Math.floor(this.tokenId / 1000000);
-    this.addTrait("series", this.tokenSeries, null, "number");
-    
-    this.projectName = projectName;
-    this.uriPrefix = uriPrefix;
-
-    this.desc = desc;
-    this.bgColor = bgColor;
-  }
-
-  addTrait(traitType, value, maxValue = null, displayType = null)
-  {
-    // trait_type is the name. Separate multi-word names with an underscore, 
-    // like color_scheme, which will appear on OpenSea as "Color Scheme".
-    // value can be a number or a string. If it's a string it always displays in the Properties section.
-    let obj = {
-      "trait_type": traitType,
-      "value": value
-    };
-    // if you include max_value the attribute displays in the Levels section as a progress bar
-    if (maxValue != null)
-    {
-      obj["max_value"] = maxValue;
-    }
-    // set display_type = "number" and it displays in the Stats section instead, like "1 of 250"
-    if (displayType != null)
-    {
-      obj["display_type"] = displayType;
-    }
-    this.traits.push(obj);
-  }
-
-  getJson()
-  {
-      // 2DO: get correct URIs
-    let obj = {
-      "external_url": this.uriPrefix + "token/" + this.tokenId,
-      "name": this.projectName + " #" + this.tokenSerial,
-      "image": this.uriPrefix + "images/" + this.tokenId + ".jpg", // or whatever
-    }
-    if (this.desc != null)
-    {
-      obj["description"] = this.desc;
-    }
-    if (this.bgColor != null)
-    {
-      obj["background_color"] = this.bgColor;
-    }
-    obj["attributes"] = this.traits;
-
-    return JSON.stringify(obj);
-  }
-}
 
 // -- minimization help ---
 // function startupSequence()
